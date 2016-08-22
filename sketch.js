@@ -21,7 +21,9 @@ function draw() {
     var mouse = createVector(mouseX, mouseY);
     if (debug) { flowfield.display(); }
     for (var i = 0; i < vehicles.length; i++) {
-        vehicles[i].followFlow(flowfield);
+        //vehicles[i].followFlow(flowfield);
+        vehicles[i].wander();
+        vehicles[i].followPath(path);
       // vehicles[i].seek(mouse);
         vehicles[i].run();
     }
@@ -42,4 +44,5 @@ function keyPressed() {
 
 function mousePressed() {
     flowfield.init();
+    path.init();
 }

@@ -13,7 +13,7 @@ var Vehicle = function(x, y, maxSpeed, maxForce, width, height) {
     this.wanderAngle = 0;
     this.wanderForce = createVector();
 
-    var c = color(0,0,random(x,y));
+    var c = color(0, 0, random(x, y));
 
     this.run = function() {
         this.update();
@@ -77,18 +77,23 @@ var Vehicle = function(x, y, maxSpeed, maxForce, width, height) {
     this.flee = function(target) {
         var desired = p5.Vector.sub(this.position, target);
         desired.setMag(1);
+
         var steer = p5.Vector.sub(desired, this.velocity);
         steer.limit(this.maxForce);
         this.applyForce(steer);
     }
-    this.predictSelfFuturePosition = function(){
-        var predict = createVector();
-        predict = this.velocity.get();
+
+
+    this.predictSelfFuturePosition = function() {
+        console.log('future');
+        var predict = this.velocity.copy();
         predict.normalize();
-        predict.mult(25);///look 25 pixels ahead
-        var predictedLocation = p5.Vector.add(this.position,predict);
-        return predictedLocation;
+        predict.mult(25); ///look 25 pixels ahead
+
+        return p5.Vector.add(this.position, predict);
+
     }
+
     this.getFuturePosition = function(target) {
 
         var lookahead = p5.Vector.dist(target.position, this.position) / this.maxSpeed;
@@ -101,20 +106,57 @@ var Vehicle = function(x, y, maxSpeed, maxForce, width, height) {
         return futurePosition;
     }
 
-    this.getNormalPoint = function(predicted,a,b){
-        var aToP = p5.Vector.sub(predicted,a);
-        var aToB = p5.Vector.sub(b,a);
+    this.getNormalPoint = function(predicted, a, b) {
 
-        aToB.normalize();//dot product for scalar
+        var aToP = p5.Vector.sub(predicted, a);
+        var aToB = p5.Vector.sub(b, a);
+
+        aToB.normalize(); //dot product for scalar
         aToB.mult(aToP.dot(aToB));
 
-        return p5.Vector.add(a,aToB);//this is the normal point
+        return p5.Vector.add(a, aToB); //this is the normal point
 
     }
-    this.followPath = function(path){
-         var predictedLoc = this.predictSelfFuturePosition();
 
-         var normalPoint = getNormalPoint(predictedLoc, path.start,path.end);
+    this.followPath = function(p) {
+
+
+        var predict = this.velocity.copy();
+        predict.normalize();
+        predict.mult(50);
+        var predictLoc = p5.Vector.add(this.position, predict);
+
+        // Look at the line segment
+        var a = p.start;
+        var b = p.end;
+        var normalPoint = this.getNormalPoint(predictLoc, a, b);
+
+        var dir = p5.Vector.sub(b, a);
+        dir.normalize();
+        //dir.mult(predict.mag()); 
+        dir.mult(10)
+        var target = p5.Vector.add(normalPoint, dir);
+
+
+        var distance = p5.Vector.dist(predictLoc, normalPoint);
+        if (distance > p.radius) {
+            this.seek(target);
+        }
+
+        fill(200);
+        stroke(200);
+        line(this.position.x, this.position.y, predictLoc.x, predictLoc.y);
+        ellipse(predictLoc.x, predictLoc.y, 4, 4);
+
+        // Draw normal location
+        fill(200);
+        stroke(200);
+        line(predictLoc.x, predictLoc.y, normalPoint.x, normalPoint.y);
+        ellipse(normalPoint.x, normalPoint.y, 4, 4);
+        stroke(200);
+        if (distance > p.radius) fill(255, 0, 0);
+        noStroke();
+        ellipse(target.x + dir.x, target.y + dir.y, 8, 8);
 
     }
 
@@ -178,7 +220,7 @@ var Vehicle = function(x, y, maxSpeed, maxForce, width, height) {
 
     this.display = function() {
         var theta = this.velocity.heading() + PI / 2;
-       
+
         fill(c);
         stroke(200);
         strokeWeight(1);
