@@ -81,7 +81,14 @@ var Vehicle = function(x, y, maxSpeed, maxForce, width, height) {
         steer.limit(this.maxForce);
         this.applyForce(steer);
     }
-
+    this.predictSelfFuturePosition = function(){
+        var predict = createVector();
+        predict = this.velocity.get();
+        predict.normalize();
+        predict.mult(25);///look 25 pixels ahead
+        var predictedLocation = p5.Vector.add(this.position,predict);
+        return predictedLocation;
+    }
     this.getFuturePosition = function(target) {
 
         var lookahead = p5.Vector.dist(target.position, this.position) / this.maxSpeed;
@@ -92,6 +99,23 @@ var Vehicle = function(x, y, maxSpeed, maxForce, width, height) {
         futurePosition.add(futureVelocity);
 
         return futurePosition;
+    }
+
+    this.getNormalPoint = function(predicted,a,b){
+        var aToP = p5.Vector.sub(predicted,a);
+        var aToB = p5.Vector.sub(b,a);
+
+        aToB.normalize();//dot product for scalar
+        aToB.mult(aToP.dot(aToB));
+
+        return p5.Vector.add(a,aToB);//this is the normal point
+
+    }
+    this.followPath = function(path){
+         var predictedLoc = this.predictSelfFuturePosition();
+
+         var normalPoint = getNormalPoint(predictedLoc, path.start,path.end);
+
     }
 
     this.pursue = function(target) {
